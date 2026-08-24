@@ -30,9 +30,9 @@ The node's own belief goes straight to the aggregation function.
 
 Two example runs. Convergence can happen in **any** area, not only at the edges (only a trajectory that keeps oscillating and never settles gives no decision):
 
-![Convergence in a middle area = decision](docs/simulator_illustration.png)
+![Convergence in a support phase](docs/simulator_illustration.png)
 
-![Convergence in another middle area = decision](docs/simulator_illustration_support.png)
+![Convergence in a resistance phase](docs/simulator_illustration_support.png)
 
 As the (filtered) inputs arrive, the **decision trajectory** moves like a price chart:
 
@@ -43,19 +43,15 @@ As the (filtered) inputs arrive, the **decision trajectory** moves like a price 
   and stays there, that is a **decision** (marked on the graph with a star and the point of
   convergence). If it keeps oscillating, the output is **no decision**.
 
-### How a phase ends (breakout)
+### Resistance and Support
 
-A phase is an area where the trajectory oscillates inside one support (green) or resistance
-(red) area. A phase ends only when there is **enough dominant evidence** to break out of it.
-The phase holds while the input dominance stays below a breakout threshold, so inputs below
-the threshold keep the trajectory oscillating in the phase. It takes a **dominant input**
-(strong evidence) to break out to the next area. The stronger the dominant evidence, the
-sooner the phase ends.
+A phase ends only when a single input has **enough dominant evidence** to break out of it;
+inputs below the breakout threshold just keep the trajectory oscillating in the phase.
 
 - **Support (green):** an area that acts as a floor. The trajectory falls into it and
-  oscillates on top of it; breaking below needs enough dominant evidence.
+  oscillates on top of it; breaking needs enough dominant evidence.
 - **Resistance (red):** an area that acts as a ceiling. The trajectory rises into it and
-  oscillates beneath it; breaking above needs enough dominant evidence.
+  oscillates beneath it; breaking needs enough dominant evidence.
 
 ### The output (V1.1 rule)
 

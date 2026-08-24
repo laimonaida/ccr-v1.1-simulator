@@ -107,6 +107,12 @@ def build(r, path):
     if r.decided_at is not None:
         cp = pos_map.get(r.decided_at + 1)
         if cp is not None:
+            # place the marker in the middle of the settled tail (from the last breakout
+            # to the end), so settled trajectory continues to its right: it reads as a
+            # stable convergence that will not break out again.
+            last_bo = r.breakouts[-1][0] if r.breakouts else r.decided_at
+            sp = pos_map.get(last_bo + 1, cp)
+            cp = min(n - 1, max(cp, (sp + (n - 1)) // 2))
             cy = float(traj[cp])
             fig.add_shape(type="line", x0=cp, x1=cp, y0=lo, y1=hi,
                           line=dict(color="#555", width=1, dash="dash"), layer="below")

@@ -176,15 +176,15 @@ def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
         x = y_center + anchor * spacing + o
         traj.append(x); anch.append(anchor); bands.append(cur_band)
         # convergence is judged from the END state of the whole trajectory: staying in
-        # the same area (no breakout) for a window, after at least one breakout, is a
-        # decision. A later breakout (it moved again) voids an earlier convergence, so
-        # a run that is still oscillating at the end has no decision.
+        # the same area (no breakout) for stable_window inputs is a decision. A later
+        # breakout (it moved again) voids an earlier convergence, so a run that is still
+        # oscillating at the end has no decision.
         if anchor != prev_anchor:
             stable = 0
             decided_at = None; decision = None
         else:
             stable += 1
-            if decided_at is None and breakouts and stable >= stable_window:
+            if decided_at is None and stable >= stable_window:
                 decided_at = inp.idx
                 decision = "decision"
     return SimResult(np.array(traj), np.array(anch), breakouts,
