@@ -74,7 +74,6 @@ pip install -r requirements.txt
 
 ```bash
 python run_sim_interactive.py   # 4 random interactive charts (HTML), opens in the browser
-python run_sim.py               # 4 random static charts (PNG) in outputs/
 ```
 
 Each run is fully random (unpredictable behavior), so different runs give different phases,
@@ -86,6 +85,5 @@ different filter pass-rates, and decision or no decision.
   relevance filter) and `simulate(...)` (the behavior + the decision / no-decision output).
 - `run_sim_interactive.py` — interactive charts (Plotly), hover for input, dominance, phase,
   filter status, breakout, and the convergence / output.
-- `run_sim.py` — static charts (matplotlib).
 
 Outputs are written to `outputs/` (git-ignored).
