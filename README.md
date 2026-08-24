@@ -28,10 +28,20 @@ As the (filtered) inputs arrive, the **decision trajectory** moves like a price 
 
 - **dominance** on the y-axis, bounded to **0 to 100**.
 - **support and resistance areas** (the shaded phases); the trajectory oscillates inside a
-  phase and **breaks out** to another level when momentum is strong enough.
+  phase and **breaks out** to another level when there is enough dominant evidence.
 - **Convergence** is the output: if the trajectory settles in a support or resistance area
   and stays there, that is a **decision** (marked on the graph with a star and the point of
   convergence). If it keeps oscillating, the output is **no decision**.
+
+### How a phase ends (breakout)
+
+A phase is a stretch where the trajectory oscillates inside one support or resistance area.
+A phase ends only when there is **enough dominant evidence** to break out of it. Each input
+adds momentum in its direction, and the phase holds while that accumulated momentum stays
+below a breakout threshold, so ordinary inputs on their own just keep the trajectory
+oscillating in place. It takes a **dominant input** (strong evidence), or a sustained run of
+inputs pushing the same way, to build enough momentum to cross the threshold and break out to
+the next area. The stronger the dominant evidence, the sooner the phase ends.
 
 ### The output (V1.1 rule)
 
