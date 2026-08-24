@@ -207,7 +207,7 @@ def random_config():
             y_center=50.0, y_span=(0.0, 100.0),         # dominance bounded to 0..100
             break_thr=random.uniform(0.55, 0.85),       # easier breakouts -> more, more frequent phases
             decide_level=999,                            # not used; convergence is detected anywhere
-            stable_window=random.randint(10, 20),        # end settled in one area (no breakout) this
+            stable_window=15,                            # end settled in one area (no breakout) this
                                                          # long to count as converged -> decision
             osc_speed=random.uniform(0.14, 0.22),       # fraction of the band per step
         ),
