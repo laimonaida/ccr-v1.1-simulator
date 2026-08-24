@@ -28,11 +28,11 @@ The node's own belief goes straight to the aggregation function.
 
 ## What the graph shows
 
-Two example runs. Converging to **either** area is a decision (only continued oscillation is no decision):
+Two example runs. Convergence can happen in **any** area, not only at the edges (only a trajectory that keeps oscillating and never settles gives no decision):
 
-![Converging in a resistance area (high dominance) = decision](docs/simulator_illustration.png)
+![Convergence in a middle area = decision](docs/simulator_illustration.png)
 
-![Converging in a support area (low dominance) = decision](docs/simulator_illustration_support.png)
+![Convergence in another middle area = decision](docs/simulator_illustration_support.png)
 
 As the (filtered) inputs arrive, the **decision trajectory** moves like a price chart:
 
@@ -51,6 +51,11 @@ The phase holds while the input dominance stays below a breakout threshold, so i
 the threshold keep the trajectory oscillating in the phase. It takes a **dominant input**
 (strong evidence) to break out to the next area. The stronger the dominant evidence, the
 sooner the phase ends.
+
+- **Support (green):** an area that acts as a floor. The trajectory falls into it and
+  oscillates on top of it; breaking below needs enough dominant evidence.
+- **Resistance (red):** an area that acts as a ceiling. The trajectory rises into it and
+  oscillates beneath it; breaking above needs enough dominant evidence.
 
 ### The output (V1.1 rule)
 

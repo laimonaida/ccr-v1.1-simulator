@@ -1,35 +1,25 @@
 """
-CCR V1.1 - Aggregation-function BEHAVIOR simulator.
+CCR V1.1 - Node behaviour simulator (pre-processing filter + aggregation function).
 
-This does NOT implement a specific aggregation function (no two-expert rule, no
-library). It is an abstract oracle that models the *behaviour* of an aggregation
-function: as filtered inputs (beliefs/evidence with a dominance) arrive one by
-one, the "decision" moves along a trajectory - like a price chart with support
-and resistance areas, momentum, breakouts, and convergence to a decision
-(a fixed point) or continued oscillation (no decision yet).
+This does NOT implement a specific aggregation function. It is an abstract oracle
+that models the BEHAVIOUR of a CCR V1.1 node:
 
-Concepts implemented
---------------------
-- decision trajectory x(t): a scalar that moves as inputs arrive.
-- support / resistance levels: an integer grid; x oscillates inside a band
-  around the current level (a plateau) and bounces off the band edges.
-- momentum m(t): accumulates a decaying sum of the signed pushes.
-- dominant evidence -> breakout: to leave the current band (break a resistance
-  going up, or a support going down) the momentum must exceed a break
-  threshold; only dominant inputs (or a sustained run) achieve that. The
-  breakout is amplified (a jump to the next level).
-- oscillation / stabilization: while nothing is dominant enough, x just
-  oscillates in the band (a "negotiation" phase, no decision yet).
-- convergence / fixed point: if x reaches a decision zone (top = YES, bottom =
-  NO) and stays stable for a window, a decision is made (x(t+1)=x(t)).
-- order / time-invariance: because it is a running accumulation, moving the
-  dominant inputs later delays the decision (shift in input -> shift in output).
-- traceability: every breakout and the convergence step are recorded, so you
-  can see which dominant evidence moved the decision through each level.
+    n inputs (D1..Dn) -> pre-processing (relevance) filter -> aggregation function -> output
+
+- Pre-processing (relevance) filter: each input is kept (relevant = 1) or dropped
+  (relevant = 0); only kept inputs reach the aggregation function.
+- Aggregation-function behaviour: the aggregated dominance moves along a trajectory
+  in a bounded range (e.g. 0..100), like a price chart. It oscillates inside a phase
+  (a support or resistance area) and BREAKS OUT to the next area only when a single
+  input has enough dominance to cross a breakout threshold.
+- Output (binary): if the trajectory CONVERGES (stays in the same area, with no
+  breakout) for a window, the output is a decision; if it keeps oscillating between
+  areas, the output is no decision. Convergence can happen in any area, not only the
+  extremes.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Tuple
 import numpy as np
 
@@ -39,24 +29,25 @@ class Inp:
     idx: int
     push: float        # signed = direction * dominance
     dominance: float   # magnitude in [0, ~1.7]
-    dominant: bool     # True for the rare high-dominance ("major") evidence
+    dominant: bool     # True for the rare high-dominance ("dominant") evidence
     relevant: bool = True   # pre-processing (relevance) filter: 1 = kept, 0 = dropped
 
 
 def make_inputs(n: int = 100, bias: float = 0.0, dominant_prob: float = 0.08,
                 dominant_when: str = "spread", dominant_align: float = 0.85,
                 relevance_prob: float = 1.0, seed: int = 0) -> List[Inp]:
-    """Synthetic filtered inputs.
+    """Synthetic inputs.
 
     bias in [-0.5, 0.5] tilts the direction of the pushes (drives a trend).
-    dominant_prob is the fraction of rare, high-dominance ("major") inputs.
-    dominant_when: 'spread' | 'late' | 'early' controls when the dominant
-        inputs occur (used to show order / time-invariance).
-    dominant_align: how strongly the dominant ("major") evidence follows the
-        trend (bias) direction; these are the inputs that drive breakouts.
-    relevance_prob: the per-node pre-processing (relevance) filter. Each input
-        D_i is independently kept (relevant = 1) with this probability, else
-        dropped (relevant = 0) and never reaches aggregation. 1.0 keeps all.
+    dominant_prob is the fraction of rare, high-dominance ("dominant") inputs;
+        only these can cross the breakout threshold and end a phase.
+    dominant_when: 'spread' | 'late' | 'early' controls when the dominant inputs
+        occur (used to show order / time dependence).
+    dominant_align: how strongly the dominant evidence follows the trend (bias)
+        direction; these are the inputs that drive breakouts.
+    relevance_prob: the per-node pre-processing (relevance) filter. Each input is
+        independently kept (relevant = 1) with this probability, else dropped
+        (relevant = 0) and never reaches aggregation. 1.0 keeps all.
     """
     rng = np.random.default_rng(seed)
     n_dom = max(1, int(round(n * dominant_prob)))
@@ -88,12 +79,11 @@ def make_inputs(n: int = 100, bias: float = 0.0, dominant_prob: float = 0.08,
 
 @dataclass
 class SimResult:
-    traj: np.ndarray                    # decision trajectory x(t), length n+1
-    momentum: np.ndarray                # momentum m(t)
+    traj: np.ndarray                    # dominance trajectory, length n+1
     anchors: np.ndarray                 # current support/resistance level per step
-    breakouts: List[Tuple[int, float, int, str]]  # (input idx, dominance, new level, kind: 'dominant'|'momentum')
+    breakouts: List[Tuple[int, float, int, str]]  # (input idx, dominance, new level, "dominant")
     decided_at: Optional[int]           # step index of the decision, or None
-    decision: Optional[str]             # 'YES' / 'NO' / None
+    decision: Optional[str]             # "decision" / None (no decision)
     levels_visited: List[int]
     params: dict
     relevance: Optional[np.ndarray] = None  # per-input 1 = kept / 0 = dropped by the filter
@@ -103,27 +93,29 @@ class SimResult:
 def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
              band_range: Optional[Tuple[float, float]] = None,
              y_center: float = 0.0, y_span: Optional[Tuple[float, float]] = None,
-             osc_speed: float = 0.30, push_gain: float = 0.05, decay: float = 0.85,
-             break_thr: float = 1.25, break_reset: float = 0.4, decide_level: int = 3,
+             osc_speed: float = 0.30, push_gain: float = 0.05,
+             break_thr: float = 1.25, decide_level: int = 3,
              stable_window: int = 6, noise: float = 0.03, seed: int = 0) -> SimResult:
     """Run the behaviour oracle over the inputs.
 
-    The trajectory CONSOLIDATES inside a channel (a level +/- band): during a
-    consolidation phase it zig-zags edge to edge, touching the resistance line
-    (top of the band) and the support line (bottom) several times, like a price
-    chart. It only BREAKS OUT to the next level when the accumulated momentum
-    passes a threshold (a dominant input, or a sustained run). This keeps the
-    support/resistance phases long and easy to see by eye.
+    The trajectory oscillates inside a phase (a level +/- band): it zig-zags edge to
+    edge, touching the resistance line (top of the band) and the support line (bottom).
+    A phase ends (a BREAKOUT to the next level) only when a single input's dominance
+    crosses break_thr; inputs below the threshold just keep it oscillating.
 
-    decide_level: how many levels away the decision zone is (YES at
-        +decide_level, NO at -decide_level).
+    Output: the trajectory CONVERGES when it stays at the same level (no breakout) for
+    stable_window inputs after having moved at least once; that is a decision. If it
+    keeps breaking out until the inputs run out, there is no decision.
+
+    band_range: if given, each phase samples its own amplitude in this range.
+    y_center / y_span: if given, the trajectory is centred at y_center and bounded to
+        y_span (e.g. 0..100); breakouts that would leave the range are blocked.
     """
     rng = np.random.default_rng(seed + 1)
     rng_b = np.random.default_rng(seed + 2)   # separate stream for per-phase amplitude
 
     def _band() -> float:
-        # each channel (phase) gets its own amplitude when band_range is given,
-        # so phase heights vary; otherwise the fixed band is used everywhere.
+        # each phase gets its own amplitude when band_range is given; else a fixed band.
         return float(rng_b.uniform(band_range[0], band_range[1])) if band_range else band
 
     # if a y_span (e.g. 0..100) is given, bound the levels so the whole trajectory
@@ -141,9 +133,8 @@ def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
     cur_band = _band()   # amplitude of the current channel
     o = 0.0              # position within the channel, in [-cur_band, cur_band]
     d = 1.0              # intra-channel zig-zag direction
-    m = 0.0
     x = y_center
-    traj = [x]; mom = [0.0]; anch = [0]; bands = [cur_band]
+    traj = [x]; anch = [0]; bands = [cur_band]
     breakouts: List[Tuple[int, float, int, str]] = []
     decided_at: Optional[int] = None
     decision: Optional[str] = None
@@ -154,19 +145,20 @@ def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
             # dropped by the pre-processing (relevance) filter: it never reaches
             # aggregation, so nothing updates and the trajectory holds flat.
             relevance.append(0)
-            traj.append(x); mom.append(m); anch.append(anchor); bands.append(cur_band)
+            traj.append(x); anch.append(anchor); bands.append(cur_band)
             continue
         relevance.append(1)
-        m = decay * m + inp.push       # kept only for the momentum trace
         # a phase ends only when a SINGLE input has enough dominance to cross the
         # breakout threshold; inputs below the threshold just keep it oscillating.
-        if decided_at is None and inp.push > break_thr and anchor + 1 <= amax:
+        # the FULL trajectory always runs (no early freeze).
+        prev_anchor = anchor
+        if inp.push > break_thr and anchor + 1 <= amax:
             anchor += 1
-            cur_band = _band()         # new channel, new random amplitude
+            cur_band = _band()         # new phase, new random amplitude
             o = -cur_band * 0.6        # jump into the low of the new channel
             d = 1.0
             breakouts.append((inp.idx, inp.dominance, anchor, "dominant"))
-        elif decided_at is None and inp.push < -break_thr and anchor - 1 >= amin:
+        elif inp.push < -break_thr and anchor - 1 >= amin:
             anchor -= 1
             cur_band = _band()
             o = cur_band * 0.6
@@ -174,43 +166,41 @@ def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
             breakouts.append((inp.idx, inp.dominance, anchor, "dominant"))
         else:
             # consolidation: zig-zag across the channel, bouncing off the edges.
-            # the step scales with the channel amplitude so tall and short phases
-            # both fill their band in a similar number of steps.
+            # the step scales with the phase amplitude so tall and short phases both
+            # fill their band in a similar number of steps.
             o += osc_speed * cur_band * d + push_gain * inp.push + rng.normal(0, noise)
             if o >= cur_band:
                 o = cur_band; d = -1.0     # bounce down off the resistance line
             elif o <= -cur_band:
                 o = -cur_band; d = 1.0     # bounce up off the support line
         x = y_center + anchor * spacing + o
-        traj.append(x); mom.append(m); anch.append(anchor); bands.append(cur_band)
-        # convergence -> the OUTPUT of the aggregation function (V1.1): binary.
-        # a decision is reached when the trajectory settles in a support or
-        # resistance area (an extreme level) and stays there for a window;
-        # otherwise it keeps oscillating and there is no decision.
-        if y_span is not None:
-            at_area = (anchor == amax or anchor == amin)
-        else:
-            at_area = abs(anchor) >= decide_level
-        if decided_at is None and at_area:
-            stable += 1
-            if stable >= stable_window:
-                decided_at = inp.idx
-                # V1.1 rule (agreed): converging to a support OR resistance area is
-                # a decision; only continued oscillation is no decision.
-                decision = "decision"
-        else:
+        traj.append(x); anch.append(anchor); bands.append(cur_band)
+        # convergence is judged from the END state of the whole trajectory: staying in
+        # the same area (no breakout) for a window, after at least one breakout, is a
+        # decision. A later breakout (it moved again) voids an earlier convergence, so
+        # a run that is still oscillating at the end has no decision.
+        if anchor != prev_anchor:
             stable = 0
-    return SimResult(np.array(traj), np.array(mom), np.array(anch), breakouts,
+            decided_at = None; decision = None
+        else:
+            stable += 1
+            if decided_at is None and breakouts and stable >= stable_window:
+                decided_at = inp.idx
+                decision = "decision"
+    return SimResult(np.array(traj), np.array(anch), breakouts,
                      decided_at, decision, sorted(set(anch)),
                      dict(spacing=spacing, band=band, band_range=band_range,
-                          y_center=y_center, y_span=y_span,
-                          osc_speed=osc_speed, break_thr=break_thr,
-                          decide_level=decide_level, stable_window=stable_window),
+                          y_center=y_center, y_span=y_span, osc_speed=osc_speed,
+                          break_thr=break_thr, decide_level=decide_level,
+                          stable_window=stable_window),
                      relevance=np.array(relevance), bands=np.array(bands))
 
 
 if __name__ == "__main__":
     # quick self-check
-    ins = make_inputs(100, bias=0.14, seed=1)
-    r = simulate(ins, seed=1)
-    print("decided:", r.decision, "at step", r.decided_at, "| breakouts:", len(r.breakouts))
+    ins = make_inputs(1000, bias=0.0, dominant_prob=0.1, relevance_prob=0.7, seed=1)
+    r = simulate(ins, band_range=(5, 15), y_center=50.0, y_span=(0.0, 100.0),
+                 break_thr=0.7, stable_window=30, osc_speed=0.18, seed=1)
+    print("decision:", r.decision, "at", r.decided_at,
+          "| breakouts:", len(r.breakouts),
+          "| kept:", int(r.relevance.sum()), "/", len(r.relevance))

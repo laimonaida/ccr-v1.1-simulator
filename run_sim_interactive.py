@@ -200,10 +200,9 @@ def random_config():
             band_range=(band_min, band_max),            # random per-phase amplitude, 20..50
             y_center=50.0, y_span=(0.0, 100.0),         # dominance bounded to 0..100
             break_thr=random.uniform(0.55, 0.85),       # easier breakouts -> more, more frequent phases
-            decay=random.uniform(0.82, 0.90),
-            decide_level=999,                            # bounded model uses the 0/100 areas, not this
-            stable_window=random.randint(45, 95),        # must hold a support/resistance area this long
-                                                         # to converge -> gives a decision / no-decision mix
+            decide_level=999,                            # not used; convergence is detected anywhere
+            stable_window=random.randint(10, 20),        # end settled in one area (no breakout) this
+                                                         # long to count as converged -> decision
             osc_speed=random.uniform(0.14, 0.22),       # fraction of the band per step
         ),
     )
