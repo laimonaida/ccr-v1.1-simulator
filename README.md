@@ -24,6 +24,8 @@ The node's own belief goes straight to the aggregation function.
 
 ## What the graph shows
 
+![CCR V1.1 aggregation-function behavior](docs/simulator_illustration.png)
+
 As the (filtered) inputs arrive, the **decision trajectory** moves like a price chart:
 
 - **dominance** on the y-axis, bounded to **0 to 100**.
