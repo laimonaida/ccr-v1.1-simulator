@@ -157,30 +157,22 @@ def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
             traj.append(x); mom.append(m); anch.append(anchor); bands.append(cur_band)
             continue
         relevance.append(1)
-        m = decay * m + inp.push
-        # breakout when momentum crosses the barrier; otherwise consolidate.
-        # kind = "dominant" if this single input's own push crosses the barrier,
-        # else "momentum" (an ordinary input carried over by accumulated momentum).
-        if decided_at is None and m > break_thr and anchor + 1 <= amax:
+        m = decay * m + inp.push       # kept only for the momentum trace
+        # a phase ends only when a SINGLE input has enough dominance to cross the
+        # breakout threshold; inputs below the threshold just keep it oscillating.
+        if decided_at is None and inp.push > break_thr and anchor + 1 <= amax:
             anchor += 1
             cur_band = _band()         # new channel, new random amplitude
             o = -cur_band * 0.6        # jump into the low of the new channel
-            m *= break_reset
             d = 1.0
-            kind = "dominant" if abs(inp.push) >= break_thr else "momentum"
-            breakouts.append((inp.idx, inp.dominance, anchor, kind))
-        elif decided_at is None and m < -break_thr and anchor - 1 >= amin:
+            breakouts.append((inp.idx, inp.dominance, anchor, "dominant"))
+        elif decided_at is None and inp.push < -break_thr and anchor - 1 >= amin:
             anchor -= 1
             cur_band = _band()
             o = cur_band * 0.6
-            m *= break_reset
             d = -1.0
-            kind = "dominant" if abs(inp.push) >= break_thr else "momentum"
-            breakouts.append((inp.idx, inp.dominance, anchor, kind))
+            breakouts.append((inp.idx, inp.dominance, anchor, "dominant"))
         else:
-            # blocked at a boundary: bleed the momentum so it does not hammer the wall
-            if m > break_thr or m < -break_thr:
-                m *= break_reset
             # consolidation: zig-zag across the channel, bouncing off the edges.
             # the step scales with the channel amplitude so tall and short phases
             # both fill their band in a similar number of steps.

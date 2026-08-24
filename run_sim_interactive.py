@@ -120,22 +120,24 @@ def build(r, path):
     # OUTPUT of the aggregation function, shown BELOW the graph only
     out_text = "Output:  decision" if is_decision else "Output:  no decision"
     out_color = GREEN if is_decision else "#6B6B6B"
-    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.21, showarrow=False,
+    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.20, showarrow=False,
                        text=out_text, font=dict(color=out_color, size=19))
     # divider: separate the aggregation output from the pre-processing filter results
     fig.add_shape(type="line", xref="paper", yref="paper", x0=0.30, x1=0.70,
-                  y0=-0.285, y1=-0.285, line=dict(color="#CCCCCC", width=1))
-    # pre-processing filter results
+                  y0=-0.275, y1=-0.275, line=dict(color="#CCCCCC", width=1))
+    # pre-processing filter results, under a labelled header
+    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.335, showarrow=False,
+                       text="Pre-processing filter", font=dict(color=NAVY, size=15))
     passed = int(rel.sum()); dropped = n_all - passed
-    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.355, showarrow=False,
+    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.405, showarrow=False,
                        text=f"Passed the filter:  {passed} / {n_all}  ({100*passed/n_all:.1f}%)",
                        font=dict(color=GREEN, size=14))
-    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.425, showarrow=False,
+    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.470, showarrow=False,
                        text=f"Did not pass:  {dropped} / {n_all}  ({100*dropped/n_all:.1f}%)",
                        font=dict(color=RED, size=14))
     fig.update_layout(
-        template="plotly_white", height=730,
-        margin=dict(l=60, r=30, t=30, b=225), showlegend=False,
+        template="plotly_white", height=780,
+        margin=dict(l=60, r=30, t=30, b=270), showlegend=False,
         xaxis=dict(title=f"inputs that passed the filter (D1 ... D{kept})", range=[0, kept]),
         yaxis=dict(title="dominance", range=[lo, hi], showticklabels=False),
         hovermode="x unified")

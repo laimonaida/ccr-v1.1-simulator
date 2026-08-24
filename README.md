@@ -1,8 +1,9 @@
-# CCR V1.1 — Aggregation-Function Behavior Simulator
+# CCR V1.1 — Node Behavior Simulator
 
-This is an abstract oracle that simulates the **behavior** of a per-node aggregation
-function in CCR. It does **not** implement a specific aggregation function. It is meant
-to show the team exactly what a V1.1 node should do, so the flow can be implemented.
+This is an abstract oracle that simulates the **behavior** of a CCR V1.1 node:
+**both the pre-processing (relevance) filter and the aggregation function**. It does
+**not** implement a specific aggregation function. It is meant to show the team exactly
+what a V1.1 node should do, so the flow can be implemented.
 
 ## What CCR V1.1 adds
 
@@ -11,7 +12,10 @@ V1.1 has two blocks inside each node:
 1. **Pre-processing filter (relevance).** For each received input it marks it relevant
    (1) or not (0) and passes only the relevant ones to aggregation. Here it is a simple
    per-input random keep/drop.
-2. **Aggregation function = this behavior simulator** (it replaces the V1.0 dummy).
+2. **Aggregation function** (it replaces the V1.0 dummy).
+
+The simulator in this repo models **both** blocks: the pre-processing filter and the
+aggregation function.
 
 ### Data flow inside a node
 
@@ -41,13 +45,12 @@ As the (filtered) inputs arrive, the **decision trajectory** moves like a price 
 
 ### How a phase ends (breakout)
 
-A phase is a stretch where the trajectory oscillates inside one support or resistance area.
-A phase ends only when there is **enough dominant evidence** to break out of it. Each input
-adds momentum in its direction, and the phase holds while that accumulated momentum stays
-below a breakout threshold, so ordinary inputs on their own just keep the trajectory
-oscillating in place. It takes a **dominant input** (strong evidence), or a sustained run of
-inputs pushing the same way, to build enough momentum to cross the threshold and break out to
-the next area. The stronger the dominant evidence, the sooner the phase ends.
+A phase is an area where the trajectory oscillates inside one support (green) or resistance
+(red) area. A phase ends only when there is **enough dominant evidence** to break out of it.
+The phase holds while the input dominance stays below a breakout threshold, so inputs below
+the threshold keep the trajectory oscillating in the phase. It takes a **dominant input**
+(strong evidence) to break out to the next area. The stronger the dominant evidence, the
+sooner the phase ends.
 
 ### The output (V1.1 rule)
 
