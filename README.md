@@ -24,7 +24,11 @@ The node's own belief goes straight to the aggregation function.
 
 ## What the graph shows
 
-![CCR V1.1 aggregation-function behavior](docs/simulator_illustration.png)
+Two example runs. Converging to **either** area is a decision (only continued oscillation is no decision):
+
+![Converging in a resistance area (high dominance) = decision](docs/simulator_illustration.png)
+
+![Converging in a support area (low dominance) = decision](docs/simulator_illustration_support.png)
 
 As the (filtered) inputs arrive, the **decision trajectory** moves like a price chart:
 
