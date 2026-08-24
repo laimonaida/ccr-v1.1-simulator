@@ -1,66 +1,49 @@
 # CCR V1.1: Pre-processing filter & Aggregation function Behavior Simulator
 
-This is an abstract oracle that simulates the **behavior** of a CCR V1.1 node:
-**both the pre-processing (relevance) filter and the aggregation function**. It does
-**not** implement a specific aggregation function. It is meant to show the team exactly
-what a V1.1 node should do, so the flow can be implemented.
+An abstract oracle that simulates the **behavior** of a CCR V1.1 node: both the
+pre-processing (relevance) filter and the aggregation function. It does **not** implement
+a specific aggregation function. It shows the team exactly what a V1.1 node should do, so
+the flow can be implemented.
 
-## What CCR V1.1 adds
+## Scope of V1.1
 
-V1.1 has two blocks inside each node:
+- Builds on V1.0; V1.1 inserts the pre-processing filter before the aggregation function.
+- Model the pre-processing filter and the aggregation function behavior in a simulator
+  (replacing the V1.0 dummy).
+- The pre-processing box is a simple relevance filter (relevant = 1 / irrelevant = 0).
+- The aggregation function outputs a binary result in the simulator: decision or no
+  decision, decided by convergence (converges = decision, keeps oscillating = no decision).
+- Each node has its own unique pre-processing filter and aggregation function.
 
-1. **Pre-processing filter (relevance).** For each received input it marks it relevant
-   (1) or not (0) and passes only the relevant ones to aggregation. Here it is a simple
-   per-input random keep/drop.
-2. **Aggregation function** (it replaces the V1.0 dummy).
+## Data flow inside a node & Output
 
-The simulator in this repo models **both** blocks: the pre-processing filter and the
-aggregation function.
+![A V1.1 node](docs/node.png)
 
-### Data flow inside a node
+The node receives n inputs (D1 ... Dn) from the other nodes. The pre-processing filter
+marks each input relevant (1) or not (0) and passes only the relevant ones, so only a
+subset of the n reaches the aggregation function. The aggregation function receives this
+data and produces the binary output: a decision or no decision, converges = decision,
+keeps oscillating = no decision.
 
-```
-n inputs (D1 ... Dn)  ->  pre-processing filter (relevant 1 / not 0)  ->  aggregation function  ->  output
-   from other nodes         only a subset passes                          (this simulator)          decision / no decision
-```
+## Pre-processing filter & Aggregation-function behavior simulator
 
-The node's own belief goes straight to the aggregation function.
+The simulator models the pre-processing filter and the aggregation function and outputs a
+decision. The pre-processing filter is applied on the inputs (each input is randomly kept
+or dropped, for example about 55 percent of the input pass). The aggregation function
+behavior is modeled in the simulator, where it shows the dominance trajectory. Its output
+is binary: a decision when the trajectory converges, or no decision when it keeps
+oscillating.
 
-## What the graph shows
+![Convergence in Support phase](docs/convergence_support.png)
 
-Two example runs. Convergence can happen in **any** area, not only at the edges (only a trajectory that keeps oscillating and never settles gives no decision):
+![Convergence in Resistance phase](docs/convergence_resistance.png)
 
-![Convergence in a support phase](docs/simulator_illustration.png)
-
-![Convergence in a resistance phase](docs/simulator_illustration_support.png)
-
-As the (filtered) inputs arrive, the **decision trajectory** moves like a price chart:
-
-- **dominance** on the y-axis, bounded to **0 to 100**.
-- **support and resistance areas** (the shaded phases); the trajectory oscillates inside a
-  phase and **breaks out** to another level when there is enough dominant evidence.
-- **Convergence** is the output: if the trajectory settles in a support or resistance area
-  and stays there, that is a **decision** (marked on the graph with a star and the point of
-  convergence). If it keeps oscillating, the output is **no decision**.
-
-### Resistance and Support
-
-A phase ends only when a single input has **enough dominant evidence** to break out of it;
-inputs below the breakout threshold just keep the trajectory oscillating in the phase.
+## Resistance & Support
 
 - **Support (green):** an area that acts as a floor. The trajectory falls into it and
   oscillates on top of it; breaking needs enough dominant evidence.
 - **Resistance (red):** an area that acts as a ceiling. The trajectory rises into it and
   oscillates beneath it; breaking needs enough dominant evidence.
-
-### The output (V1.1 rule)
-
-Binary only:
-
-- **converge to a support or resistance area and stay -> decision**
-- **keep oscillating (no convergence) -> no decision**
-
-It is only "decision or no decision" in V1.1 (not which decision, not goal based).
 
 ## Install
 
@@ -76,14 +59,14 @@ pip install -r requirements.txt
 python run_sim_interactive.py   # 4 random interactive charts (HTML), opens in the browser
 ```
 
-Each run is fully random (unpredictable behavior), so different runs give different phases,
-different filter pass-rates, and decision or no decision.
+Each run is fully random, so different runs give different phases, different filter
+pass-rates, and decision or no decision.
 
 ## Files
 
 - `aggregation_behavior_sim.py` — the core: `make_inputs(...)` (synthetic inputs with the
-  relevance filter) and `simulate(...)` (the behavior + the decision / no-decision output).
-- `run_sim_interactive.py` — interactive charts (Plotly), hover for input, dominance, phase,
-  filter status, breakout, and the convergence / output.
+  relevance filter) and `simulate(...)` (the behavior and the decision / no-decision output).
+- `run_sim_interactive.py` — the interactive charts (Plotly): hover for input, dominance,
+  phase, filter status, breakout, and the convergence / output.
 
 Outputs are written to `outputs/` (git-ignored).
