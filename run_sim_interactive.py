@@ -191,8 +191,9 @@ def random_config():
         make=dict(
             bias=random.uniform(-0.06, 0.06),          # weak trend -> wanders, no fast march
             dominant_prob=random.uniform(0.06, 0.10),   # dominant inputs -> breakouts (phases)
-            dominant_when=random.choice(["early", "early", "early", "spread"]),  # cluster the
-            #   dominant evidence early, leaving a quiet tail that can settle -> easier to converge
+            dominant_when=random.choice(["early", "early", "early", "spread", "late"]),  # mostly
+            #   early (quiet tail settles -> decision), but some spread/late keep breaking out at
+            #   the end -> no decision, so the outcome varies more across runs
             dominant_align=random.uniform(0.45, 0.60),  # breakouts go both ways -> little net drift
             relevance_prob=random.uniform(0.55, 0.90),  # pre-processing filter: keep 55-90% of inputs
         ),
