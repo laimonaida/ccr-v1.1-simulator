@@ -1,4 +1,4 @@
-# CCR V1.1 — Pre-processing filter & Aggregatio function Behavior Simulator
+# CCR V1.1: Pre-processing filter & Aggregation function Behavior Simulator
 
 This is an abstract oracle that simulates the **behavior** of a CCR V1.1 node:
 **both the pre-processing (relevance) filter and the aggregation function**. It does
