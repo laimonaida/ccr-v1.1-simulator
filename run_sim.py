@@ -19,7 +19,6 @@ from matplotlib.patches import Rectangle
 from aggregation_behavior_sim import make_inputs, simulate
 
 N = 1000
-DECIDE = 5
 OSC = 0.30
 NUM_RUNS = 4
 GREEN, RED, NAVY = "#2C6E52", "#B03A2E", "#1F3864"
@@ -68,7 +67,7 @@ def phases_of(anchors):
 
 
 def plot_run(r, ins, path):
-    sp = r.params["spacing"]; B = r.params["band"]; DEC = r.params["decide_level"]
+    sp = r.params["spacing"]; B = r.params["band"]
     n_all = len(ins)
     # keep only the inputs that passed the relevance filter, and re-index the
     # x-axis to those (so it runs 1 .. number-passed, e.g. 866). Dropped inputs
@@ -82,11 +81,6 @@ def plot_run(r, ins, path):
     fig, ax = plt.subplots(figsize=(12.5, 4.8))
     lo = float(traj.min()) - 1.1 * sp
     hi = float(traj.max()) + 1.1 * sp
-    # decision zones (structural shading only, no text)
-    if DEC * sp < hi:
-        ax.axhspan(DEC * sp, hi, color=GREEN, alpha=0.06)
-    if -DEC * sp > lo:
-        ax.axhspan(lo, -DEC * sp, color=RED, alpha=0.06)
     # each oscillating phase = one resistance (red) or support (green) band
     for (a, b, lvl, kind) in phases_of(anchors):
         if b - a < 12:
@@ -123,7 +117,7 @@ def main():
     for i in range(1, NUM_RUNS + 1):
         seed = random.randrange(1_000_000)
         ins = make_inputs(N, seed=seed, **random_inputs())
-        r = simulate(ins, decide_level=DECIDE, osc_speed=OSC, seed=seed)
+        r = simulate(ins, osc_speed=OSC, seed=seed)
         path = os.path.join(out_dir, f"sim_run_{i}.png")
         plot_run(r, ins, path)
         kept = int(r.relevance.sum())

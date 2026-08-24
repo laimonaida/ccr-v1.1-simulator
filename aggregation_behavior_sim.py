@@ -94,8 +94,8 @@ def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
              band_range: Optional[Tuple[float, float]] = None,
              y_center: float = 0.0, y_span: Optional[Tuple[float, float]] = None,
              osc_speed: float = 0.30, push_gain: float = 0.05,
-             break_thr: float = 1.25, decide_level: int = 3,
-             stable_window: int = 6, noise: float = 0.03, seed: int = 0) -> SimResult:
+             break_thr: float = 1.25, stable_window: int = 6,
+             noise: float = 0.03, seed: int = 0) -> SimResult:
     """Run the behaviour oracle over the inputs.
 
     The trajectory oscillates inside a phase (a level +/- band): it zig-zags edge to
@@ -191,8 +191,7 @@ def simulate(inputs: List[Inp], *, spacing: float = 2.6, band: float = 0.95,
                      decided_at, decision, sorted(set(anch)),
                      dict(spacing=spacing, band=band, band_range=band_range,
                           y_center=y_center, y_span=y_span, osc_speed=osc_speed,
-                          break_thr=break_thr, decide_level=decide_level,
-                          stable_window=stable_window),
+                          break_thr=break_thr, stable_window=stable_window),
                      relevance=np.array(relevance), bands=np.array(bands))
 
 

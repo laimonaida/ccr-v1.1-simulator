@@ -15,8 +15,6 @@ import plotly.graph_objects as go
 from aggregation_behavior_sim import make_inputs, simulate
 
 N = 1000
-DECIDE = 5
-OSC = 0.30
 NUM_RUNS = 4
 GREEN, RED, NAVY = "#2C6E52", "#B03A2E", "#1F3864"
 
@@ -40,7 +38,7 @@ def phases_of(anchors):
 
 
 def build(r, path):
-    sp = r.params["spacing"]; DEC = r.params["decide_level"]
+    sp = r.params["spacing"]
     rel = r.relevance
     n_all = len(rel)
     # keep only the inputs that passed the relevance filter, and re-index the
@@ -80,10 +78,6 @@ def build(r, path):
     else:
         lo = float(traj.min()) - 1.1 * sp
         hi = float(traj.max()) + 1.1 * sp
-        if DEC * sp < hi:
-            fig.add_hrect(y0=DEC * sp, y1=hi, fillcolor=GREEN, opacity=0.06, line_width=0, layer="below")
-        if -DEC * sp > lo:
-            fig.add_hrect(y0=lo, y1=-DEC * sp, fillcolor=RED, opacity=0.06, line_width=0, layer="below")
     for (a, b, lvl, kind) in phases:
         if b - a < 4:
             continue
@@ -207,7 +201,6 @@ def random_config():
             band_range=(band_min, band_max),            # random per-phase amplitude, 20..50
             y_center=50.0, y_span=(0.0, 100.0),         # dominance bounded to 0..100
             break_thr=random.uniform(0.55, 0.85),       # easier breakouts -> more, more frequent phases
-            decide_level=999,                            # not used; convergence is detected anywhere
             stable_window=40,                            # end settled in one area (no breakout) this
                                                          # long to count as converged -> decision
             osc_speed=random.uniform(0.14, 0.22),       # fraction of the band per step
