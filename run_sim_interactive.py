@@ -117,25 +117,25 @@ def build(r, path):
             fig.add_annotation(x=cp, y=cy, text="converged", showarrow=True, arrowhead=2,
                                ax=0, ay=-34, font=dict(color=GREEN, size=12),
                                bgcolor="rgba(255,255,255,0.75)")
-    # write the OUTPUT on the graph
+    # OUTPUT of the aggregation function, shown BELOW the graph only
     out_text = "Output:  decision" if is_decision else "Output:  no decision"
     out_color = GREEN if is_decision else "#6B6B6B"
-    fig.add_annotation(xref="paper", yref="paper", x=0.01, y=0.98, xanchor="left", yanchor="top",
-                       showarrow=False, text=out_text, font=dict(color=out_color, size=18),
-                       bgcolor="rgba(255,255,255,0.65)")
-    # output + filter stats below the chart (output is shown on the graph and here)
-    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.14, showarrow=False,
-                       text=out_text, font=dict(color=out_color, size=17))
+    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.13, showarrow=False,
+                       text=out_text, font=dict(color=out_color, size=19))
+    # divider: separate the aggregation output from the pre-processing filter results
+    fig.add_shape(type="line", xref="paper", yref="paper", x0=0.30, x1=0.70,
+                  y0=-0.205, y1=-0.205, line=dict(color="#CCCCCC", width=1))
+    # pre-processing filter results
     passed = int(rel.sum()); dropped = n_all - passed
-    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.22, showarrow=False,
+    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.275, showarrow=False,
                        text=f"Passed the filter:  {passed} / {n_all}  ({100*passed/n_all:.1f}%)",
                        font=dict(color=GREEN, size=14))
-    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.29, showarrow=False,
+    fig.add_annotation(xref="paper", yref="paper", x=0.5, y=-0.345, showarrow=False,
                        text=f"Did not pass:  {dropped} / {n_all}  ({100*dropped/n_all:.1f}%)",
                        font=dict(color=RED, size=14))
     fig.update_layout(
-        template="plotly_white", height=660,
-        margin=dict(l=60, r=30, t=30, b=155), showlegend=False,
+        template="plotly_white", height=690,
+        margin=dict(l=60, r=30, t=30, b=185), showlegend=False,
         xaxis=dict(title=f"inputs that passed the filter (D1 ... D{kept})", range=[0, kept]),
         yaxis=dict(title="dominance", range=[lo, hi], showticklabels=False),
         hovermode="x unified")
