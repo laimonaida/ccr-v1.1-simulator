@@ -1,6 +1,6 @@
 # CCR V1.1: Aggregation function Behavior Simulator
 
-Runnable simulator of the aggregation function. The full description is in the separate V1.1 document; this repo is a showcase of how the behavior output could look like.
+Runnable simulator of the aggregation function. The full description is in the separate V1.1 document; this repo is a showcase of how the behavior output of the aggregation function could look like.
 
 ## Install
 
