@@ -1,8 +1,6 @@
-# CCR V1.1: Pre-processing filter & Aggregation function Behavior Simulator
+# CCR V1.1: Aggregation function Behavior Simulator
 
-Runnable simulator of a CCR V1.1 node (the pre-processing relevance filter and the
-aggregation function). The full description is in the separate V1.1 document; this repo is
-the code.
+Runnable simulator of the aggregation function. The full description is in the separate V1.1 document; this repo is a showcase of how the behavior output could look like.
 
 ## Install
 
